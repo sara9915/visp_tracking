@@ -60,10 +60,11 @@
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>visp</exec_depend>
-  <!-- <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend> -->
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
+  <depend>geometry_msgs</depend>
   <!-- catkin_lint produce an error arround build_depend visp. -->
   <!-- This error shouldn't be considered. If build_depend visp is removed, -->
   <!-- the package is not able to build on ros buildfarm. -->

@@ -11,9 +11,9 @@ project(visp_tracking)
 
 find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
-    #image_proc
-    #image_transport
-    # message_generation
+    actionlib_msgs
+    actionlib
+    message_generation
     roscpp
     rospy
     sensor_msgs
@@ -74,17 +74,16 @@ find_package(VISP REQUIRED)
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  FILES
+  tracking_mode_.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs geometry_msgs sensor_msgs # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs geometry_msgs sensor_msgs actionlib_msgs # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -118,7 +117,7 @@ find_package(VISP REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES visp_tracking
- CATKIN_DEPENDS  visp_bridge sensor_msgs roscpp
+ CATKIN_DEPENDS visp_bridge sensor_msgs roscpp message_runtime
  DEPENDS  VISP  
 )
 
@@ -137,7 +136,7 @@ include_directories(SYSTEM
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/generic-rgbd/mb_tracker_rgbd_realsense.cpp
+  src/generic-rgbd/mb_tracker_as.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -155,7 +154,7 @@ target_link_libraries(${PROJECT_NAME}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/generic-rgbd/tutorial-mb-generic-tracker-rgbd-realsense.cpp)
-add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_rgbd_realsense.cpp)
+add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_as.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

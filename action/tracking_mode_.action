@@ -1,0 +1,11 @@
+#goal definition
+bool use_edges
+bool use_ktl
+bool use_depth
+string path_wrl
+---
+#result definition 
+bool success
+---
+#feedback definition
+geometry_msgs/PoseStamped pose_tracker
