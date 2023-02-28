@@ -46,6 +46,42 @@ void conv_depth_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<uint16
   memcpy(I_element->bitmap, &(msg->data[0]), I_element->getHeight() * I_element->getWidth() * sizeof(uint16_t));
 }
 
+void modify_wrl_scale(const std::string &model_color)
+{
+  std::fstream file(model_color, std::ios::in);
+
+  if (file.is_open())
+  {
+    std::string replace = "  scale 1 1 1";
+    std::string replace_with = "  scale 10 10 10";
+    std::string line;
+    std::vector<std::string> lines;
+
+    while (std::getline(file, line))
+    {
+      std::cout << line << std::endl;
+
+      std::string::size_type pos = 0;
+
+      while ((pos = line.find(replace, pos)) != std::string::npos)
+      {
+        line.replace(pos, line.size(), replace_with);
+        pos += replace_with.size();
+      }
+
+      lines.push_back(line);
+    }
+
+    file.close();
+    file.open(model_color, std::ios::out | std::ios::trunc);
+
+    for (const auto &i : lines)
+    {
+      file << i << std::endl;
+    }
+  }
+}
+
 bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib::SimpleActionServer<visp_tracking::tracking_mode_Action> *as, ros::NodeHandle *nh, std::string *config_color, std::string *config_depth, std::string *model_color, std::string *model_depth, std::string *init_file, std::string *learning_data)
 {
   visp_tracking::tracking_mode_Feedback feedback_;
@@ -58,6 +94,11 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   use_depth = goal->use_depth;
   use_edges = goal->use_edges;
   use_klt = goal->use_ktl;
+
+  /* MODIFY WRL FILE WITH SCALE OPTIMUM FACTOR*/
+  /*
+  TO DO
+  */
 
   /* Initial configuration */
   std::string parentname = vpIoTools::getParent(*model_color);
@@ -114,7 +155,6 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
     return EXIT_FAILURE;
   }
 
-  /* Vedi se c'è un publisher sul topic /image_raw */
   auto cam_color_ros = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/camera/color/camera_info");
   vpCameraParameters cam_color = visp_bridge::toVispCameraParameters(*cam_color_ros);
 

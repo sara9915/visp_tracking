@@ -155,6 +155,7 @@ target_link_libraries(${PROJECT_NAME}
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/generic-rgbd/tutorial-mb-generic-tracker-rgbd-realsense.cpp)
 add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_as.cpp)
+add_executable(test_file src/generic-rgbd/test_file.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -168,6 +169,9 @@ add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_as.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+  )
+
+target_link_libraries(test_file ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
   )
 
 #############
