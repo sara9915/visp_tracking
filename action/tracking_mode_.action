@@ -3,6 +3,7 @@ bool use_edges
 bool use_ktl
 bool use_depth
 string path_wrl
+geometry_msgs/PoseStamped initial_pose
 ---
 #result definition 
 bool success

@@ -1,6 +1,10 @@
 
 #include <iostream>
 #include <visp3/core/vpConfig.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
 
 // Conversion
 #include "conversion_camera.h"
@@ -19,7 +23,8 @@
 #include <geometry_msgs/Transform.h>
 #include <visp_tracking/tracking_mode_Action.h>
 #include <actionlib/server/simple_action_server.h>
-#include <librealsense2/rs.hpp> 
+#include <librealsense2/rs.hpp>
+#include <pcl_ros/point_cloud.h>
 
 // VISP
 #include <visp3/core/vpDisplay.h>
@@ -34,14 +39,23 @@
 
 bool use_ogre = false;
 bool use_scanline = false;
-bool use_edges = true;
-bool use_klt = true;
+bool use_edges = false;
+bool use_klt = false;
 bool use_depth = true;
 bool learn = false;
 bool auto_init = false;
 bool display_projection_error = true;
 double proj_error_threshold = 25;
 bool user_init = true;
+
+void conv_pointcloud_callback(const sensor_msgs::PointCloud2::ConstPtr &msg, pcl::PointCloud<pcl::PointXYZ>::ConstPtr I_element)
+{
+  pcl::PCLPointCloud2 pcl_pc2;
+  pcl_conversions::toPCL(*msg, pcl_pc2);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromPCLPointCloud2(pcl_pc2, *temp_cloud);
+  I_element = temp_cloud;
+}
 
 void conv_rgba_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<vpRGBa> *I_element)
 {
@@ -52,7 +66,6 @@ void conv_depth_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<uint16
 {
   memcpy(I_element->bitmap, &(msg->data[0]), I_element->getHeight() * I_element->getWidth() * sizeof(uint16_t));
 }
-
 
 bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib::SimpleActionServer<visp_tracking::tracking_mode_Action> *as, ros::NodeHandle *nh, std::string *config_color, std::string *config_depth, std::string *model_color, std::string *model_depth, std::string *init_file, std::string *learning_data)
 {
@@ -130,10 +143,8 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   auto cam_depth_ros = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/camera/depth/camera_info");
   vpCameraParameters cam_depth = visp_bridge::toVispCameraParameters(*cam_depth_ros);
 
-  // std::cout << "Sensor internal camera parameters for color camera: " << cam_color << std::endl;
-  // std::cout << "Sensor internal camera parameters for depth camera: " << cam_depth << std::endl;
-
-  std::cout << "Getting camera width and height...";
+  std::cout << "Sensor internal camera parameters for color camera: " << cam_color << std::endl;
+  std::cout << "Sensor internal camera parameters for depth camera: " << cam_depth << std::endl;
 
   int width_color = cam_color_ros->width;
   int height_color = cam_color_ros->height;
@@ -141,14 +152,10 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   int height_depth = cam_depth_ros->height;
   int fps = 30;
 
-  std::cout << "Defining vpImage...";
-
   vpImage<vpRGBa> I_color(height_color, width_color);
   vpImage<unsigned char> I_gray(height_color, width_color);
   vpImage<unsigned char> I_depth(height_depth, width_depth);
   vpImage<uint16_t> I_depth_raw(height_depth, width_depth);
-
-  std::cout << "Opening display...";
 
   unsigned int _posx = 100, _posy = 50;
 
@@ -164,7 +171,6 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   if (use_depth)
     d2.init(I_depth, _posx + I_gray.getWidth() + 10, _posy, "Depth stream");
 
-  std::cout << "Creating subscribers...";
   ros::Subscriber color_sub = nh->subscribe<sensor_msgs::Image>("/camera/color/image_raw2", 1, boost::bind(&conv_rgba_callback, _1, &I_color));
   ros::Subscriber depth_sub = nh->subscribe<sensor_msgs::Image>("/camera/depth/image_rect_raw", 1, boost::bind(&conv_depth_callback, _1, &I_depth_raw));
   ros::Publisher pose_pub = nh->advertise<geometry_msgs::PoseStamped>("tracker_pose", 1);
@@ -241,13 +247,14 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   // vpHomogeneousMatrix depth_M_color = realsense.getTransformation(RS2_STREAM_COLOR, RS2_STREAM_DEPTH);
   std::map<std::string, vpHomogeneousMatrix> mapOfCameraTransformations;
   std::map<std::string, const vpImage<unsigned char> *> mapOfImages;
+  std::map<std::string, const vpImage<vpRGBa> *> mapOfImages_mod;
   std::map<std::string, std::string> mapOfInitFiles;
-  std::map<std::string, const std::vector<vpColVector> *> mapOfPointclouds;
+  std::map<std::string, pcl::PointCloud<pcl::PointXYZ>::ConstPtr> mapOfPointclouds;
   std::map<std::string, unsigned int> mapOfWidths, mapOfHeights;
   std::map<std::string, vpHomogeneousMatrix> mapOfCameraPoses;
 
-  std::vector<vpColVector> pointcloud;
-  
+  pcl::PointCloud<pcl::PointXYZ>::ConstPtr pointcloud;
+  ros::Subscriber pointcloud_sub = nh->subscribe<sensor_msgs::PointCloud2>("/camera/depth/color/points", 1, boost::bind(&conv_pointcloud_callback, _1, pointcloud));
 
   vpMbGenericTracker tracker(trackerTypes);
 
@@ -321,7 +328,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
     }
     keypoint.loadLearningData(*learning_data, true);
   }
-  if(!user_init)
+  if (!user_init)
   {
     std::cout << "Init from pose";
     geometry_msgs::Pose initial_pose_cm;
@@ -330,7 +337,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
     initial_pose_cm.position.z = goal->initial_pose.pose.position.z * 100;
     initial_pose_cm.orientation = goal->initial_pose.pose.orientation;
     auto init_pose_ = visp_bridge::toVispHomogeneousMatrix(initial_pose_cm);
-    tracker.initFromPose(I_gray,init_pose_);
+    tracker.initFromPose(I_gray, init_pose_);
   }
   else
   {
@@ -393,7 +400,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
       if ((use_edges || use_klt) && use_depth)
       {
         mapOfImages["Camera1"] = &I_gray;
-        mapOfPointclouds["Camera2"] = &pointcloud;
+        mapOfPointclouds["Camera2"] = pointcloud;
         mapOfWidths["Camera2"] = width_depth;
         mapOfHeights["Camera2"] = height_depth;
       }
@@ -403,12 +410,10 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
       }
       else if (use_depth)
       {
-        mapOfPointclouds["Camera"] = &pointcloud;
+        mapOfPointclouds["Camera"] = pointcloud;
         mapOfWidths["Camera"] = width_depth;
         mapOfHeights["Camera"] = height_depth;
       }
-
-      
 
       // Run auto initialization from learned data
       if (run_auto_init)
@@ -457,7 +462,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
         }
         if ((use_edges || use_klt) && use_depth)
         {
-          tracker.track(mapOfImages, mapOfPointclouds, mapOfWidths, mapOfHeights);
+          tracker.track(mapOfImages, mapOfPointclouds);
         }
         else if (use_edges || use_klt)
         {
@@ -465,7 +470,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
         }
         else if (use_depth)
         {
-          tracker.track(mapOfImages, mapOfPointclouds, mapOfWidths, mapOfHeights);
+          tracker.track(mapOfImages_mod, mapOfPointclouds);
         }
       }
       catch (const vpException &e)
@@ -657,6 +662,12 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "tracker_node");
   ros::NodeHandle nh;
+
+  #ifdef VISP_HAVE_PCL
+  std::cout <<"VISP_HAVE_PCL" << std::endl;
+  #else
+std::cout <<"NOOO VISP_HAVE_PCL" << std::endl;
+  #endif
 
   ros::AsyncSpinner spinner(0);
   spinner.start();

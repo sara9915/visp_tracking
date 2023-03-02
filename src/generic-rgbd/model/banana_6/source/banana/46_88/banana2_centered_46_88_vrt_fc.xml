@@ -28,10 +28,10 @@
     <pyramid_lvl>3</pyramid_lvl> 
   </klt>
   <camera>
-    <u0>325.66776</u0> 
-    <v0>243.69727</v0> 
-    <px>839.21470</px> 
-    <py>839.44555</py> 
+    <u0>317.7075500488281</u0> 
+    <v0>238.1421356201172</v0> 
+    <px>610.59326171875</px> 
+    <py>610.605712890625</py> 
   </camera>
   <face>
     <angle_appear>70</angle_appear> 
@@ -41,4 +41,5 @@
     <fov_clipping>1</fov_clipping>
   </face>
 </conf>
+
 

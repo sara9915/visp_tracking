@@ -19,11 +19,14 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     std_msgs
     tf
-    visp_bridge
+    # visp_bridge
+    pcl_ros
 )
 
 find_package(OpenCV REQUIRED)
+find_package(PCL 1.10 REQUIRED)
 find_package(VISP REQUIRED)
+find_package(realsense2 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -115,10 +118,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES visp_tracking
- CATKIN_DEPENDS visp_bridge sensor_msgs roscpp message_runtime
- DEPENDS  VISP  
+ CATKIN_DEPENDS  sensor_msgs roscpp message_runtime pcl_ros #visp_bridge
+ DEPENDS PCL VISP 
 )
 
 ###########
@@ -129,21 +132,31 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(SYSTEM
   ${Boost_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
   ${VISP_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
 )
+
+include_directories(
+ include
+ ${catkin_INCLUDE_DIRS}
+)
+
+# link_directories(${PCL_LIBRARY_DIRS})
+# add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-  src/generic-rgbd/mb_tracker_as.cpp
-)
+# add_library(${PROJECT_NAME}
+#   src/generic-rgbd/mb_tracker_depth_as.cpp
+# )
 
-target_link_libraries(${PROJECT_NAME}
-  ${Boost_LIBRARIES}
-  ${OpenCV_LIBS}
-  ${VISP_LIBRARIES}
-  )
+# target_link_libraries(${PROJECT_NAME}
+#   ${Boost_LIBRARIES}
+#   ${PCL_LIBRARIES}
+#   ${OpenCV_LIBS}
+#   ${VISP_LIBRARIES}
+#   ${realsense2_LIBRARY}
+#   )
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -154,8 +167,8 @@ target_link_libraries(${PROJECT_NAME}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/generic-rgbd/tutorial-mb-generic-tracker-rgbd-realsense.cpp)
-add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_as.cpp)
-add_executable(test_file src/generic-rgbd/test_file.cpp)
+add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_depth_as.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -168,11 +181,9 @@ add_executable(test_file src/generic-rgbd/test_file.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+target_link_libraries(${PROJECT_NAME}_node  ${VISP_LIBRARIES} ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} 
   )
 
-target_link_libraries(test_file ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
-  )
 
 #############
 ## Install ##
