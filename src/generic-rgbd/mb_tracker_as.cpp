@@ -1,11 +1,12 @@
 
 #include <iostream>
-#include <visp3/core/vpConfig.h>
+// #include <visp3/core/vpConfig.h>
 
 // Conversion
 #include "conversion_camera.h"
 #include "conversion_pose.h"
 #include "conversion_image.h"
+// #include <visp3/core/vpQuaternionVector.h>
 
 /* ROS */
 #include <ros/ros.h>
@@ -43,7 +44,9 @@ bool display_projection_error = true;
 double proj_error_threshold = 25;
 bool user_init = true;
 
-void conv_rgba_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<vpRGBa> *I_element)
+
+
+void conv_rgba_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<vpRGBA> *I_element)
 {
   *I_element = visp_bridge::toVispImageRGBa(*msg);
 }
@@ -172,6 +175,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   while (true)
   {
     ros::spinOnce();
+    ROS_INFO_STREAM("display");
 
     if (use_edges || use_klt)
     {

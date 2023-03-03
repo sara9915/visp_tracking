@@ -128,17 +128,21 @@ catkin_package(
 ## Build ##
 ###########
 
+# message("VISP:::") 
+# message(${VISP_INCLUDE_DIRS})
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(SYSTEM
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ${VISP_INCLUDE_DIRS}
+  
   ${OpenCV_INCLUDE_DIRS}
 )
 
 include_directories(
  include
+ ${VISP_INCLUDE_DIRS}
  ${catkin_INCLUDE_DIRS}
 )
 
@@ -146,8 +150,8 @@ include_directories(
 # add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/generic-rgbd/mb_tracker_depth_as.cpp
+# add_library(visp_conv
+#   src/generic-rgbd/vpQuaternionVector.cpp
 # )
 
 # target_link_libraries(${PROJECT_NAME}

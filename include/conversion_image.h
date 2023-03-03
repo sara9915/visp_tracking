@@ -6,8 +6,8 @@
 #define __VISP_BRIDGE_IMAGE_H__
 
 #include "sensor_msgs/Image.h"
-#include "visp/vpImage.h"
-#include "visp/vpRGBa.h"
+#include "visp3/core/vpImage.h"
+#include "visp3/core/vpRGBa.h"
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
 #include <boost/format.hpp>

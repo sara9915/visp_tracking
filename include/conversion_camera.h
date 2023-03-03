@@ -4,7 +4,7 @@
 */
 #ifndef _VISP_BRIDGE_CAMERA_H_
 #define _VISP_BRIDGE_CAMERA_H_
-#include <visp/vpCameraParameters.h>
+#include <visp3/core/vpCameraParameters.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/distortion_models.h>
 

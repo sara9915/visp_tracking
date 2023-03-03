@@ -1,19 +1,20 @@
 #include "geometry_msgs/Transform.h"
 #include "geometry_msgs/Pose.h"
-#include "visp/vpHomogeneousMatrix.h"
+
 
 #ifndef _VISP_BRIDGE_3DPOSE_H_
 #define _VISP_BRIDGE_3DPOSE_H_
-#include "visp/vpConfig.h"
+#include "visp3/core/vpConfig.h"
 #include <cmath>
 
-#if VISP_VERSION_INT > (2 << 16 | 6 << 8 | 1)
-#include <visp/vpQuaternionVector.h>
+#if VISP_VERSION_INT > (2<<16 | 6<<8 | 1)
+#include <visp3/core/vpQuaternionVector.h>
 #else
 #include "../vpQuaternionVector.h"
 #include <visp/vpRotationMatrix.h>
 #endif
-#include <visp/vpTranslationVector.h>
+#include <visp3/core/vpTranslationVector.h>
+#include "visp3/core/vpHomogeneousMatrix.h"
 
 namespace visp_bridge
 {
