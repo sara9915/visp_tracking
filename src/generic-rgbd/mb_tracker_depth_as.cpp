@@ -13,10 +13,6 @@
 
 /* ROS */
 #include <ros/ros.h>
-// #include <visp_bridge/3dpose.h>
-// #include <visp_bridge/camera.h>
-// #include <visp_bridge/image.h>
-// #include <visp_bridge/vpQuaternionVector.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
 #include <tf/transform_listener.h>
@@ -27,7 +23,7 @@
 #include <pcl_ros/point_cloud.h>
 
 // VISP
-#include <visp3/core/vpDisplay.h>
+#include "visp3/core/vpDisplay.h"
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpXmlParserCamera.h>
 #include <visp3/gui/vpDisplayGDI.h>
@@ -50,20 +46,14 @@ bool user_init = false;
 
 void conv_pointcloud_callback(const sensor_msgs::PointCloud2::ConstPtr &msg, pcl::PointCloud<pcl::PointXYZ>::Ptr I_element)
 {
-  std::cout << "Before callback convert " << std::endl;
   pcl::PCLPointCloud2 pcl_pc2;
   pcl_conversions::toPCL(*msg, pcl_pc2);
-
   pcl::fromPCLPointCloud2(pcl_pc2, *I_element);
-
-  std::cout << "after callback convert " << std::endl;
 }
 
 void conv_rgba_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<vpRGBa> *I_element)
 {
-  // std::cout << "Sensor internal camera parameters for color camera: ";
   *I_element = visp_bridge::toVispImageRGBa(*msg);
-  // std::cout << "ababababbaba" << std::endl;
 }
 
 void conv_depth_callback(const sensor_msgs::Image::ConstPtr &msg, vpImage<uint16_t> *I_element)
@@ -191,15 +181,10 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
     loop_rate.sleep();
     if (use_edges || use_klt)
     {
-      // std::cout << "Before convert " << std::endl;
       vpImageConvert::convert(I_color, I_gray);
-      // std::cout << "After convert " << std::endl;
       vpDisplay::display(I_gray);
-      // std::cout << "After display " << std::endl;
       vpDisplay::displayText(I_gray, 20, 20, "Click when ready.", vpColor::red);
-      // std::cout << "After displayText " << std::endl;
       vpDisplay::flush(I_gray);
-      // std::cout << "After flush " << std::endl;
 
       if (vpDisplay::getClick(I_gray, false))
       {
@@ -703,80 +688,10 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(0);
   spinner.start();
 
-  std::string config_color = "", config_depth = "";
-  std::string model_color = "", model_depth = "";
-  std::string init_file = "";
+  std::string config_color, config_depth;
+  std::string model_color, model_depth = "";
+  std::string init_file;
   std::string learning_data = "learning/data-learned.bin";
-
-  // for (int i = 1; i < argc; i++)
-  // {
-  //   if (std::string(argv[i]) == "--config_color" && i + 1 < argc)
-  //   {
-  //     config_color = std::string(argv[i + 1]);
-  //   }
-  //   else if (std::string(argv[i]) == "--config_depth" && i + 1 < argc)
-  //   {
-  //     config_depth = std::string(argv[i + 1]);
-  //   }
-  //   else if (std::string(argv[i]) == "--init_file" && i + 1 < argc)
-  //   {
-  //     init_file = std::string(argv[i + 1]);
-  //   }
-  //   else if (std::string(argv[i]) == "--proj_error_threshold" && i + 1 < argc)
-  //   {
-  //     proj_error_threshold = std::atof(argv[i + 1]);
-  //   }
-  //   else if (std::string(argv[i]) == "--use_ogre")
-  //   {
-  //     use_ogre = true;
-  //   }
-  //   else if (std::string(argv[i]) == "--use_scanline")
-  //   {
-  //     use_scanline = true;
-  //   }
-  //   else if (std::string(argv[i]) == "--learn")
-  //   {
-  //     learn = true;
-  //   }
-  //   else if (std::string(argv[i]) == "--learning_data" && i + 1 < argc)
-  //   {
-  //     learning_data = argv[i + 1];
-  //   }
-  //   else if (std::string(argv[i]) == "--auto_init")
-  //   {
-  //     auto_init = true;
-  //   }
-  //   else if (std::string(argv[i]) == "--display_proj_error")
-  //   {
-  //     display_projection_error = true;
-  //   }
-  //   else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h")
-  //   {
-  //     std::cout << "Usage: \n"
-  //               << argv[0]
-  //               << " [--model_color <object.cao>] [--model_depth <object.cao>]"
-  //                  " [--config_color <object.xml>] [--config_depth <object.xml>]"
-  //                  " [--init_file <object.init>] [--use_ogre] [--use_scanline]"
-  //                  " [--proj_error_threshold <threshold between 0 and 90> (default: "
-  //               << proj_error_threshold
-  //               << ")]"
-  //                  " [--use_edges <0|1> (default: 1)] [--use_klt <0|1> (default: 1)] [--use_depth <0|1> (default: 1)]"
-  //                  " [--learn] [--auto_init] [--learning_data <path to .bin> (default: learning/data-learned.bin)]"
-  //                  " [--display_proj_error]"
-  //               << std::endl;
-
-  //     std::cout << "\n** How to track a 4.2 cm width cube with manual initialization:\n"
-  //               << argv[0] << " --model_color model/cube/cube.cao --use_edges 1 --use_klt 1 --use_depth 1" << std::endl;
-  //     std::cout << "\n** How to learn the cube and create a learning database:\n"
-  //               << argv[0] << " --model_color model/cube/cube.cao --use_edges 1 --use_klt 1 --use_depth 1 --learn"
-  //               << std::endl;
-  //     std::cout << "\n** How to track the cube with initialization from learning database:\n"
-  //               << argv[0] << " --model_color model/cube/cube.cao --use_edges 1 --use_klt 1 --use_depth 1 --auto_init"
-  //               << std::endl;
-
-  //     return 0;
-  //   }
-  // }
 
   /* Creazione del ros action */
   actionlib::SimpleActionServer<visp_tracking::tracking_mode_Action> as(nh, "tracker_as", boost::bind(&executeCB, _1, &as, &nh, &config_color, &config_depth, &model_color, &model_depth, &init_file, &learning_data), false);
