@@ -42,7 +42,7 @@ bool learn = false;
 bool auto_init = false;
 bool display_projection_error = true;
 double proj_error_threshold = 25;
-bool user_init = false;
+bool user_init = true;
 
 void conv_pointcloud_callback(const sensor_msgs::PointCloud2::ConstPtr &msg, pcl::PointCloud<pcl::PointXYZ>::Ptr I_element)
 {
@@ -504,15 +504,16 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
       cMo = tracker.getPose();
       geometry_msgs::PoseStamped current_pose;
       current_pose.pose = visp_bridge::toGeometryMsgsPose(cMo);
-      current_pose.pose.position.x = current_pose.pose.position.x * 0.01;
-      current_pose.pose.position.y = current_pose.pose.position.y * 0.01;
-      current_pose.pose.position.z = current_pose.pose.position.z * 0.01;
+      current_pose.pose.position.x = current_pose.pose.position.x; //* 0.01;
+      current_pose.pose.position.y = current_pose.pose.position.y; //* 0.01;
+      current_pose.pose.position.z = current_pose.pose.position.z; //* 0.01;
       current_pose.header.frame_id = "camera_color_optical_frame";
       current_pose.header.stamp = ros::Time::now();
 
       // Publish current pose
       pose_pub.publish(current_pose);
       feedback_.pose_tracker = current_pose;
+      
       as->publishFeedback(feedback_);
 
       // Check tracking errors
