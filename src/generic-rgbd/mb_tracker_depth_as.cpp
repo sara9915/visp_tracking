@@ -42,7 +42,7 @@ bool learn = false;
 bool auto_init = false;
 bool display_projection_error = true;
 double proj_error_threshold = 25;
-bool user_init = true;
+bool user_init = false;
 
 void conv_pointcloud_callback(const sensor_msgs::PointCloud2::ConstPtr &msg, pcl::PointCloud<pcl::PointXYZ>::Ptr I_element)
 {
@@ -165,7 +165,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   if (use_depth)
     d2.init(I_depth, _posx + I_gray.getWidth() + 10, _posy, "Depth stream");
 
-  ros::Subscriber color_sub = nh->subscribe<sensor_msgs::Image>("/camera/color/image_raw2", 1, boost::bind(&conv_rgba_callback, _1, &I_color));
+  ros::Subscriber color_sub = nh->subscribe<sensor_msgs::Image>("/camera/color/image_raw", 1, boost::bind(&conv_rgba_callback, _1, &I_color));
   ros::Subscriber depth_sub = nh->subscribe<sensor_msgs::Image>("/camera/depth/image_rect_raw", 1, boost::bind(&conv_depth_callback, _1, &I_depth_raw));
   ros::Publisher pose_pub = nh->advertise<geometry_msgs::PoseStamped>("tracker_pose", 1);
   ros::Rate loop_rate(1);
@@ -332,9 +332,9 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
   {
     std::cout << "Init from pose";
     geometry_msgs::Pose initial_pose_cm;
-    initial_pose_cm.position.x = goal->initial_pose.pose.position.x * 100;
-    initial_pose_cm.position.y = goal->initial_pose.pose.position.y * 100;
-    initial_pose_cm.position.z = goal->initial_pose.pose.position.z * 100;
+    initial_pose_cm.position.x = goal->initial_pose.pose.position.x;// * 100; //if user init == false comment *100
+    initial_pose_cm.position.y = goal->initial_pose.pose.position.y;// * 100;
+    initial_pose_cm.position.z = goal->initial_pose.pose.position.z;// * 100;
     initial_pose_cm.orientation = goal->initial_pose.pose.orientation;
     auto init_pose_ = visp_bridge::toVispHomogeneousMatrix(initial_pose_cm);
     // tracker.initFromPose(I_gray, init_pose_);
@@ -504,9 +504,10 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
       cMo = tracker.getPose();
       geometry_msgs::PoseStamped current_pose;
       current_pose.pose = visp_bridge::toGeometryMsgsPose(cMo);
-      current_pose.pose.position.x = current_pose.pose.position.x; //* 0.01;
-      current_pose.pose.position.y = current_pose.pose.position.y; //* 0.01;
-      current_pose.pose.position.z = current_pose.pose.position.z; //* 0.01;
+      std::cout << current_pose.pose << std::endl;
+      current_pose.pose.position.x = current_pose.pose.position.x;// * 0.01; //if user init  == false else comment 0.01
+      current_pose.pose.position.y = current_pose.pose.position.y;// * 0.01;
+      current_pose.pose.position.z = current_pose.pose.position.z;// * 0.01;
       current_pose.header.frame_id = "camera_color_optical_frame";
       current_pose.header.stamp = ros::Time::now();
 
