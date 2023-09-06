@@ -588,7 +588,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
       }
 
       std::stringstream ss;
-      ss << "Loop time: " << loop_t << " ms";
+      //ss << "Loop time: " << loop_t << " ms";
 
       vpMouseButton::vpMouseButtonType button;
       if (use_edges || use_klt)
@@ -599,7 +599,7 @@ bool executeCB(const visp_tracking::tracking_mode_GoalConstPtr &goal, actionlib:
         else if (auto_init)
           vpDisplay::displayText(I_gray, 35, 20, "Left click: auto_init  Right click: quit", vpColor::red);
         else
-          vpDisplay::displayText(I_gray, 35, 20, "Right click: quit", vpColor::red);
+          //vpDisplay::displayText(I_gray, 35, 20, "Right click: quit", vpColor::red);
 
         vpDisplay::flush(I_gray);
 

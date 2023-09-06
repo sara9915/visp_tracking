@@ -172,6 +172,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/generic-rgbd/tutorial-mb-generic-tracker-rgbd-realsense.cpp)
 add_executable(${PROJECT_NAME}_node src/generic-rgbd/mb_tracker_depth_as.cpp)
+add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ## Rename C++ executable without prefix
